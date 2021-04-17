@@ -10,7 +10,7 @@ def _hash_func(s, prime, multiplier):
         ans = 0
         for c in reversed(s):
             ans = (ans * multiplier + ord(c)) % prime
-        return ans % self.bucket_count
+        return ans
 
 def precomputeHash(text, len_pattern, prime, multiplier):
     # H is an array of hashes, size is len_text - len_pattern + 1
@@ -31,22 +31,30 @@ def precomputeHash(text, len_pattern, prime, multiplier):
     y = 1
     for i in range(len_pattern):
         y = (y * multiplier) % prime
-    
+
     for i in range(len(H) - 2, -1, -1):
-        H[i] = (multiplier * H[i-1] + ord(text[i]) - y * text[i+len_pattern]) % prime
-    
+        H[i] = (multiplier * H[i+1] + ord(text[i]) - y * ord(text[i+len_pattern])) % prime
+        
     return H
 
-def get_occurrences(pattern, text):
+def get_occurrences(pattern, text, prime, multiplier):
     # Use operator == in Python instead of implementing your own function
     # AreEqual for strings, because built-in operator == will work much faster.
+    result = []
+    pattern_hash = _hash_func(pattern, prime, multiplier)
+    H = precomputeHash(text, len(pattern), prime, multiplier)
+
+    for i in range(len(text) - len(pattern) + 1): 
+        if H[i] != pattern_hash:
+            continue
+        if text[i:i + len(pattern)] == pattern:
+            result.append(i)
+    return result
     
-    return [
-        i 
-        for i in range(len(text) - len(pattern) + 1) 
-        if text[i:i + len(pattern)] == pattern
-    ]
 
 if __name__ == '__main__':
-    print_occurrences(get_occurrences(*read_input()))
+    pattern, text = read_input()
+    prime = 10000000019
+    multiplier = 263
+    print_occurrences(get_occurrences(pattern, text, prime, multiplier))
 
